@@ -30,11 +30,11 @@ class Home extends MY_Controller {
 				$date =  $date . '/' . $month . '/' . $year; 
 				$data['User_dateofbirth'] = $date;
 				$data['User_gender']= $row->User_gender;
-				$data['User_img']= $row->User_img;
-				$data['User_location']= $row->User_Profile_location;
-				$data['User_Profile_livesin']= $row->User_Profile_livesin;
-				$data['User_hometown']= $row->User_Profile_from;	
+				$data['User_img']= $row->User_img;	
 			}
+			$data['user_profile_details'] = $this->home_model->get_user_profile_details($this->session->userdata('user_id'));
+			//echo '<pre>'; print_r($user_profile_details);
+			//exit;
         $this->template->set('title', 'Profile');
 		$this->template->load('layouts/header','profile_page',$data);   
 		}
@@ -250,18 +250,15 @@ class Home extends MY_Controller {
      }
    }
    
-      public function imgupload()
+   public function imgupload()
    {	  
- 
-
-	$this->db->where('User_id',$this->session->userdata('user_id'));
-        $query = $this->db->get('User_Hob');
-        if($query->num_rows() > 0)
-        {
-            $user_details = $this->home_model->get_user_details($this->session->userdata('user_id'));
-
-			
-            foreach ($user_details as $row){
+		$this->db->where('User_id',$this->session->userdata('user_id'));
+		$query = $this->db->get('User_Hob');
+		if($query->num_rows() > 0)
+		{
+			$user_details = $this->home_model->get_user_details($this->session->userdata('user_id'));
+			foreach ($user_details as $row)
+			{
 				$data['User_email']= $row->User_email;
 				$data['User_firstname']= $row->User_firstname;
 				$data['User_lastname']= $row->User_lastname;
@@ -271,43 +268,57 @@ class Home extends MY_Controller {
 				$date =  $date . '/' . $month . '/' . $year; 
 				$data['User_dateofbirth'] = $date;
 				$data['User_gender']= $row->User_gender;
-				$data['User_img']= $row->User_img;
-				$data['User_location']= $row->User_Profile_location;
-				$data['User_Profile_livesin']= $row->User_Profile_livesin;
-				$data['User_hometown']= $row->User_Profile_from;	
+				$data['User_img']= $row->User_img;	
 			} 
+			$data['user_profile_details'] = $this->home_model->get_user_profile_details($this->session->userdata('user_id'));
+			if($_FILES)
+			{
+				$uname = "userfile";
+				$ext = end(explode(".", $_FILES[$uname]['name']));
+				$extarray = array("jpg","JPG","JPEG","jpeg","gif","GIF","png","PNG");
+				if(in_array($ext,$extarray))
+				{
+					$basepath =  "./prof_temp/";	
+					$randomnumber = rand(1111111,8888888);
+					$newimgname = $randomnumber . "." . $ext ;												
+					$target_path = $basepath . $newimgname ;				
+					
+					$fileupload = move_uploaded_file($_FILES[$uname]['tmp_name'],$target_path) ;
+					$data['img_tmp_name'] = $randomnumber.".".$ext;
+				}else
+				{
+					$data['error'] = "Wrong format";
+				}
+			}
+			$this->template->set('title', 'Profile');
+			$this->template->load('layouts/header', 'profile_page',$data);
+		}else
+		{
+			$target= base_url().'select_hobby'; 
+			redirect($target,'refresh');
 		}
-
-					$uname = "userfile";
-					$ext = end(explode(".", $_FILES[$uname]['name']));
-					$extarray = array("jpg","JPG","JPEG","jpeg","gif","GIF","png","PNG");
-					if(in_array($ext,$extarray))
-					{
-
-						$basepath =  "./alby/";	
-						$randomnumber = rand(1111111,8888888);
-						$newimgname = $randomnumber . "." . $ext ;												
-						$target_path = $basepath . $newimgname ;				
-						
-						$fileupload = move_uploaded_file($_FILES[$uname]['tmp_name'],$target_path) ;
-						$data['img_tmp_name'] = $randomnumber.".".$ext;
-				$this->template->set('title', 'Profile');
-                $this->template->load('layouts/header', 'profile_page',$data);
-
-					}else{
-				$data['error'] = "Wrong format";
-				$this->template->set('title', 'Profile');
-                $this->template->load('layouts/header', 'profile_page',$data);
-					}
-
 		
-   }
+	}
 
 	public function imgsave(){
-	
-		echo "img save";
-		exit();
+		$postval = $this->input->post();
+		$cmt = $tagcmt = "";
+		$img_name=$this->input->post('img_name');
+		$cmt=$this->input->post('cmt');
+		$tagcmt=$this->input->post('taghere');
+		rename(APPPATH.'../prof_temp/'.$img_name,APPPATH.'../prof_img/'.$img_name);
+		$this->home_model->add_profile_image($img_name,$cmt,$tagcmt);
+		$user_id = $this->session->userdata('user_id'); 
+		$user_det = $this->home_model->user_det($user_id);
+		foreach($user_det as $val){
+			$user_path = $val->User_path;
+		}
+        $target = base_url().$user_path;
+        header("Location: ".$target);
 	}
+	
+
+	
 }
 
 /* End of file home.php */

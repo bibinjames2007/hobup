@@ -8,22 +8,35 @@ $('#save').click(function() {
 
 });
 
+$('#cancel').click(function() {
+var r=confirm("Are you sure want to Cancel ?");
+if (r==true)
+  {
+			var ind = $("#indexpage").val();			
+		    window.location = ind;
+  }
+});
+
+
 
 $("a#tag").click(function(){
 changeTag();
 });
 
 function changeTag(){
+var base = $("#base").val();
 $('img').each(function () {
   var curSrc = $(this).attr('src');
-  if ( curSrc === 'http://www.hobup.com/img/tag-icon-bw.png' ) {
-      $(this).attr('src', 'http://www.hobup.com/img/tag-icon.png');
+  var curRes = base+'img/tag-icon-bw.png';
+  var curRep = base+'img/tag-icon.png';
+  if ( curSrc === curRes ) {
+      $(this).attr('src', curRep);
 	  $("#taghere").val($("#cmt").val());
-	  $("#cmt").val("#TagHere");
-	  
+	  $("#cmt").val("");
+	  $("#cmt").attr("placeholder", "#TagHere");
   }
-  if ( curSrc === 'http://www.hobup.com/img/tag-icon.png' ) {
-      $(this).attr('src', 'http://www.hobup.com/img/tag-icon-bw.png');
+  if ( curSrc === curRep ) {
+      $(this).attr('src', curRes);
 	  $("#cmt").val($("#taghere").val());
   }
 });
